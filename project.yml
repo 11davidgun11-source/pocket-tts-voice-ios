@@ -25,9 +25,4 @@ targets:
         SWIFT_VERSION: "5.0"
         IPHONEOS_DEPLOYMENT_TARGET: "17.0"
     info:
-      properties:
-        CFBundleDisplayName: PocketVoice
-        NSMicrophoneUsageDescription: PocketVoice needs the mic to record your 10 second voice sample. Only your voice. All work stays on this phone.
-        UIFileSharingEnabled: true
-        LSSupportsOpeningDocumentsInPlace: true
-        ITSAppUsesNonExemptEncryption: false
+      path: Sources/Info.plist
