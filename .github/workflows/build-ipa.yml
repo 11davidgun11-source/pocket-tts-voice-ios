@@ -1,0 +1,62 @@
+name: Build IPA
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache Swift packages
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData/*/SourcePackages
+          key: spm-${{ runner.os }}-${{ hashFiles('app/project.yml') }}
+          restore-keys: spm-${{ runner.os }}-
+
+      - name: Install XcodeGen
+        run: brew install xcodegen || brew upgrade xcodegen
+
+      - name: Generate Xcode project
+        working-directory: app
+        run: xcodegen generate
+
+      - name: Resolve packages
+        working-directory: app
+        run: xcodebuild -resolvePackageDependencies -project PocketVoice.xcodeproj -scheme PocketVoice -clonedSourcePackagesDirPath $HOME/spm-cache
+
+      - name: Archive (no signing)
+        working-directory: app
+        run: |
+          xcodebuild archive \
+            -project PocketVoice.xcodeproj \
+            -scheme PocketVoice \
+            -configuration Release \
+            -archivePath build/PocketVoice.xcarchive \
+            -destination 'generic/platform=iOS' \
+            -clonedSourcePackagesDirPath $HOME/spm-cache \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY=""
+
+      - name: Pack unsigned IPA
+        working-directory: app
+        run: |
+          APP_PATH="build/PocketVoice.xcarchive/Products/Applications/PocketVoice.app"
+          test -d "$APP_PATH" || { echo "APP NOT FOUND"; ls -R build; exit 1; }
+          rm -rf Payload PocketVoice-unsigned.ipa
+          mkdir Payload
+          cp -R "$APP_PATH" Payload/
+          zip -r PocketVoice-unsigned.ipa Payload
+          ls -la PocketVoice-unsigned.ipa
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: PocketVoice-unsigned
+          path: app/PocketVoice-unsigned.ipa

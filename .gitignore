@@ -1,0 +1,7 @@
+# Local model pack, never commit (app downloads its own copy instead)
+pocket-tts-model.tar.bz2
+sherpa-onnx-pocket-tts-int8-2026-01-26/
+build/
+*.ipa
+*.xcarchive
+.DS_Store
