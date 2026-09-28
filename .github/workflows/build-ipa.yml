@@ -24,15 +24,12 @@ jobs:
         run: brew install xcodegen || brew upgrade xcodegen
 
       - name: Generate Xcode project
-        working-directory: app
         run: xcodegen generate
 
       - name: Resolve packages
-        working-directory: app
         run: xcodebuild -resolvePackageDependencies -project PocketVoice.xcodeproj -scheme PocketVoice -clonedSourcePackagesDirPath $HOME/spm-cache
 
       - name: Archive (no signing)
-        working-directory: app
         run: |
           xcodebuild archive \
             -project PocketVoice.xcodeproj \
@@ -45,7 +42,6 @@ jobs:
             CODE_SIGN_IDENTITY=""
 
       - name: Pack unsigned IPA
-        working-directory: app
         run: |
           APP_PATH="build/PocketVoice.xcarchive/Products/Applications/PocketVoice.app"
           test -d "$APP_PATH" || { echo "APP NOT FOUND"; ls -R build; exit 1; }
@@ -59,4 +55,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: PocketVoice-unsigned
-          path: app/PocketVoice-unsigned.ipa
+          path: PocketVoice-unsigned.ipa
